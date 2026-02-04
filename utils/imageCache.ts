@@ -1,6 +1,6 @@
 import { GeneratedImage } from '../types';
 
-const DB_NAME = 'nano-banana-pro-db';
+const DB_NAME = 'catches-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'generated-images';
 

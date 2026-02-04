@@ -25,7 +25,7 @@ export const Header: React.FC = () => {
 				</svg>
 			</div>
 			<h1 className="text-lg md:text-xl font-serif font-bold text-white tracking-tight leading-none whitespace-nowrap">
-				ArtworkStudio AI
+				CATCHES
 			</h1>
 		</div>
 	);

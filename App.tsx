@@ -10,7 +10,6 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import { editImageWithGemini } from "./services/geminiService";
 import { AppState, GeneratedImage, SourceImage } from "./types";
 import { ImageComparisonModal } from "./components/ImageComparisonModal";
-import { ApiKeyModal } from "./components/ApiKeyModal";
 import { Header } from "./components/Header";
 import { StyleSeedHelpModal } from "./components/StyleSeedHelpModal";
 import { getStyleDescription } from "./utils/styleGenerator.ts";
@@ -58,7 +57,6 @@ const App: React.FC = () => {
 	const [gridCols, setGridCols] = useState<number>(3);
 	const [downloadingAll, setDownloadingAll] = useState(false);
 	const [sidebarWidth, setSidebarWidth] = useState(320);
-	const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
 	const [showStyleDetails, setShowStyleDetails] = useState(false);
 	const [showSeedHelp, setShowSeedHelp] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
@@ -82,13 +80,6 @@ const App: React.FC = () => {
 	}, []);
 
 	useEffect(() => {
-		const checkKey = async () => {
-			// @ts-ignore
-			const hasKey = await window.aistudio.hasSelectedApiKey();
-			setHasApiKey(hasKey);
-		};
-		checkKey();
-
 		// Check for prompt in URL params
 		const params = new URLSearchParams(window.location.search);
 		const urlPrompt = params.get("prompt");
@@ -139,9 +130,6 @@ const App: React.FC = () => {
 		setState((prev) => ({ ...prev, generatedImages: [] }));
 	}, []);
 
-	const handleKeySelected = () => {
-		setHasApiKey(true);
-	};
 
 	const startResizing = useCallback(() => {
 		isResizingRef.current = true;
@@ -289,9 +277,6 @@ const App: React.FC = () => {
 				),
 			}));
 		} catch (err: any) {
-			if (err.message === "API_KEY_NOT_FOUND") {
-				setHasApiKey(false);
-			}
 			setState((prev) => ({
 				...prev,
 				generatedImages: prev.generatedImages.map((img) =>
@@ -374,9 +359,6 @@ const App: React.FC = () => {
 		}
 	};
 
-	if (hasApiKey === false) {
-		return <ApiKeyModal onKeySelected={handleKeySelected} />;
-	}
 
 	const renderSidebarControls = (isMobileView: boolean = false) => (
 		<div className="space-y-5">
@@ -834,7 +816,7 @@ const App: React.FC = () => {
 											if (successImages.length === 0) return;
 											setDownloadingAll(true);
 											const zip = new JSZip();
-											const folderName = `nano-banana-pro-${Date.now()}`;
+											const folderName = `catches-${Date.now()}`;
 											const folder = zip.folder(folderName);
 											await Promise.all(
 												successImages.map(async (img) => {
@@ -965,23 +947,9 @@ const App: React.FC = () => {
 							</div>
 							<div className="pt-4 flex items-center justify-center gap-1 text-[9px] font-bold text-monstera-400 uppercase tracking-widest opacity-80 hover:opacity-100 transition-opacity">
 								<span className="opacity-50">Made by</span>
-								<a
-									href="https://fofr.ai"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="hover:text-monstera-600 transition-colors"
-								>
-									fofr
-								</a>
-								<span className="opacity-30 mx-1">•</span>
-								<a
-									href="https://x.com/fofrAI"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="hover:text-monstera-600 transition-colors"
-								>
-									@fofrAI
-								</a>
+								<span className="hover:text-monstera-600 transition-colors">
+									CATCHES
+								</span>
 							</div>
 						</div>
 					) : (
