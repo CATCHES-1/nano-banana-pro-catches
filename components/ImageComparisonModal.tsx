@@ -6,7 +6,6 @@ import React, {
 	useMemo,
 } from "react";
 import { slugify } from "../utils/stringUtils";
-import { getStyleDescription } from "../utils/styleGenerator";
 
 interface ImageComparisonModalProps {
 	isOpen: boolean;
@@ -90,11 +89,8 @@ export const ImageComparisonModal: React.FC<ImageComparisonModalProps> = ({
 	}, [generatedImage]);
 
 	const displayedPrompt = useMemo(() => {
-		if (showFullPrompt && styleCode !== undefined && styleCode !== null) {
-			return `${prompt} ${getStyleDescription(styleCode)}`;
-		}
 		return prompt;
-	}, [prompt, showFullPrompt, styleCode]);
+	}, [prompt]);
 
 	const handleCopy = () => {
 		navigator.clipboard.writeText(displayedPrompt);

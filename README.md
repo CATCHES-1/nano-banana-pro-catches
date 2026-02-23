@@ -64,7 +64,6 @@ The cache can be cleared using the "Clear" button in the UI, which removes all c
 │   └── geminiService.ts # Gemini API integration
 ├── utils/              # Utility functions
 │   ├── imageCache.ts   # IndexedDB caching utilities
-│   ├── styleGenerator.ts
 │   └── stringUtils.ts
 ├── types.ts            # TypeScript type definitions
 ├── App.tsx             # Main application component
