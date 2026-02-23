@@ -1,10 +1,4 @@
-import React, {
-	useState,
-	useEffect,
-	useCallback,
-	useRef,
-	useMemo,
-} from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ImageUpload } from "./components/ImageUpload";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { editImageWithGemini } from "./services/geminiService";
@@ -12,7 +6,8 @@ import { AppState, GeneratedImage, SourceImage } from "./types";
 import { ImageComparisonModal } from "./components/ImageComparisonModal";
 import { Header } from "./components/Header";
 import { StyleSeedHelpModal } from "./components/StyleSeedHelpModal";
-import { getStyleDescription } from "./utils/styleGenerator.ts";
+import { PresetButtons } from "./preset.tsx";
+import type { PresetConfig } from "./preset.ts";
 import { slugify } from "./utils/stringUtils.ts";
 import {
 	saveImagesToCache,
@@ -47,17 +42,16 @@ const App: React.FC = () => {
 		error: null,
 		useGrounding: false,
 		styleCode: "",
-		randomizeEachTime: false,
+		randomizeEachTime: true,
 	});
 	const [cacheLoaded, setCacheLoaded] = useState(false);
 
 	const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(
-		null
+		null,
 	);
 	const [gridCols, setGridCols] = useState<number>(3);
 	const [downloadingAll, setDownloadingAll] = useState(false);
 	const [sidebarWidth, setSidebarWidth] = useState(320);
-	const [showStyleDetails, setShowStyleDetails] = useState(false);
 	const [showSeedHelp, setShowSeedHelp] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -130,6 +124,14 @@ const App: React.FC = () => {
 		setState((prev) => ({ ...prev, generatedImages: [] }));
 	}, []);
 
+	const applyPreset = useCallback((preset: PresetConfig) => {
+		setState((prev) => ({
+			...prev,
+			prompt: preset.prompt,
+			resolution: preset.resolution,
+			aspectRatio: preset.aspectRatio,
+		}));
+	}, []);
 
 	const startResizing = useCallback(() => {
 		isResizingRef.current = true;
@@ -156,11 +158,6 @@ const App: React.FC = () => {
 		};
 	}, [resize, stopResizing]);
 
-	const stylePreview = useMemo(() => {
-		const code = parseInt(state.styleCode, 10);
-		return isNaN(code) ? null : getStyleDescription(code);
-	}, [state.styleCode]);
-
 	const getLoadingAspectRatio = useCallback(
 		(ratio: string | undefined): React.CSSProperties => {
 			if (!ratio || ratio === "Original") return { aspectRatio: "1 / 1" };
@@ -168,7 +165,7 @@ const App: React.FC = () => {
 			if (!w || !h) return { aspectRatio: "1 / 1" };
 			return { aspectRatio: `${w} / ${h}` };
 		},
-		[]
+		[],
 	);
 
 	const handleImagesSelected = useCallback(
@@ -195,7 +192,7 @@ const App: React.FC = () => {
 				reader.readAsDataURL(file);
 			});
 		},
-		[state.sourceImages]
+		[state.sourceImages],
 	);
 
 	useEffect(() => {
@@ -231,13 +228,6 @@ const App: React.FC = () => {
 			setState((prev) => ({ ...prev, styleCode: currentCode }));
 		}
 
-		if (currentCode) {
-			const numericCode = parseInt(currentCode, 10);
-			if (!isNaN(numericCode)) {
-				finalPrompt += ` . ${getStyleDescription(numericCode)}`;
-			}
-		}
-
 		const newId = Date.now().toString();
 		const newImage: GeneratedImage = {
 			id: newId,
@@ -260,7 +250,7 @@ const App: React.FC = () => {
 				finalPrompt,
 				state.resolution,
 				state.aspectRatio,
-				state.useGrounding
+				state.useGrounding,
 			);
 
 			setState((prev) => ({
@@ -273,7 +263,7 @@ const App: React.FC = () => {
 								url: result.imageBase64,
 								groundingMetadata: result.groundingMetadata,
 						  }
-						: img
+						: img,
 				),
 			}));
 		} catch (err: any) {
@@ -286,7 +276,7 @@ const App: React.FC = () => {
 								status: "error",
 								error: err instanceof Error ? err.message : "Generation failed",
 						  }
-						: img
+						: img,
 				),
 			}));
 		}
@@ -317,7 +307,7 @@ const App: React.FC = () => {
 	const handleNextImage = () => {
 		if (!selectedImage) return;
 		const idx = state.generatedImages.findIndex(
-			(img) => img.id === selectedImage.id
+			(img) => img.id === selectedImage.id,
 		);
 		if (idx < state.generatedImages.length - 1) {
 			setSelectedImage(state.generatedImages[idx + 1]);
@@ -327,7 +317,7 @@ const App: React.FC = () => {
 	const handlePrevImage = () => {
 		if (!selectedImage) return;
 		const idx = state.generatedImages.findIndex(
-			(img) => img.id === selectedImage.id
+			(img) => img.id === selectedImage.id,
 		);
 		if (idx > 0) {
 			setSelectedImage(state.generatedImages[idx - 1]);
@@ -358,7 +348,6 @@ const App: React.FC = () => {
 			return title || "Link";
 		}
 	};
-
 
 	const renderSidebarControls = (isMobileView: boolean = false) => (
 		<div className="space-y-5">
@@ -398,7 +387,7 @@ const App: React.FC = () => {
 										setState((p) => ({
 											...p,
 											sourceImages: p.sourceImages.filter(
-												(i) => i.id !== img.id
+												(i) => i.id !== img.id,
 											),
 										}))
 									}
@@ -452,6 +441,8 @@ const App: React.FC = () => {
 				</div>
 
 				<div className="p-3.5 space-y-3">
+					<PresetButtons onSelect={applyPreset} />
+
 					<div className="grid grid-cols-1 gap-3">
 						<div className="space-y-1">
 							<label className="text-[9px] text-monstera-800 font-black uppercase tracking-widest px-1">
@@ -549,7 +540,7 @@ const App: React.FC = () => {
 										setState((p) => ({
 											...p,
 											styleCode: Math.floor(
-												Math.random() * 1000000000
+												Math.random() * 1000000000,
 											).toString(),
 										}))
 									}
@@ -572,37 +563,6 @@ const App: React.FC = () => {
 								</button>
 							)}
 						</div>
-
-						{stylePreview && !state.randomizeEachTime && (
-							<div className="pb-1">
-								<button
-									onClick={() => setShowStyleDetails(!showStyleDetails)}
-									className="flex items-center gap-1 text-[8px] font-bold text-monstera-400 hover:text-monstera-600 uppercase tracking-wider transition-colors select-none"
-								>
-									<span>{showStyleDetails ? "Hide" : "Show"} Style Prompt</span>
-									<svg
-										className={`w-2.5 h-2.5 transition-transform duration-200 ${
-											showStyleDetails ? "rotate-180" : ""
-										}`}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2.5}
-											d="M19 9l-7 7-7-7"
-										/>
-									</svg>
-								</button>
-								{showStyleDetails && (
-									<div className="mt-1.5 p-2 bg-monstera-50 border border-monstera-100 rounded text-[9px] font-medium leading-relaxed text-monstera-700 animate-fadeIn">
-										{stylePreview}
-									</div>
-								)}
-							</div>
-						)}
 
 						<label className="flex items-center gap-2.5 cursor-pointer group px-1 select-none">
 							<div className="relative">
@@ -811,7 +771,7 @@ const App: React.FC = () => {
 									<button
 										onClick={async () => {
 											const successImages = state.generatedImages.filter(
-												(img) => img.status === "success" && img.url
+												(img) => img.status === "success" && img.url,
 											);
 											if (successImages.length === 0) return;
 											setDownloadingAll(true);
@@ -831,27 +791,20 @@ const App: React.FC = () => {
 													}`;
 													folder!.file(`${baseFilename}.jpg`, blob);
 
-													const styleDesc =
-														img.styleCode !== undefined &&
-														img.styleCode !== null
-															? getStyleDescription(img.styleCode)
-															: null;
-
 													const metadata = [
 														`Prompt: ${img.prompt}`,
-														styleDesc ? `Style Prompt: ${styleDesc}` : "",
 														`Resolution: ${img.resolution || "N/A"}`,
 														`Aspect Ratio: ${img.aspectRatio || "N/A"}`,
 														`Style Seed: ${img.styleCode ?? "None"}`,
 														`Timestamp: ${new Date(
-															img.timestamp
+															img.timestamp,
 														).toLocaleString()}`,
 														`ID: ${img.id}`,
 														img.groundingMetadata
 															? `Grounding Metadata: ${JSON.stringify(
 																	img.groundingMetadata,
 																	null,
-																	2
+																	2,
 															  )}`
 															: "",
 													]
@@ -859,7 +812,7 @@ const App: React.FC = () => {
 														.join("\n");
 
 													folder!.file(`${baseFilename}.txt`, metadata);
-												})
+												}),
 											);
 											const content = await zip.generateAsync({ type: "blob" });
 											const link = document.createElement("a");
@@ -1126,10 +1079,10 @@ const App: React.FC = () => {
 															>
 																{getDomainFromUrl(
 																	chunk.web.uri,
-																	chunk.web.title
+																	chunk.web.title,
 																)}
 															</a>
-														)
+														),
 												)}
 											</div>
 										)}
@@ -1157,7 +1110,7 @@ const App: React.FC = () => {
 				hasNext={
 					selectedImage
 						? state.generatedImages.findIndex(
-								(img) => img.id === selectedImage.id
+								(img) => img.id === selectedImage.id,
 						  ) <
 						  state.generatedImages.length - 1
 						: false
@@ -1165,7 +1118,7 @@ const App: React.FC = () => {
 				hasPrev={
 					selectedImage
 						? state.generatedImages.findIndex(
-								(img) => img.id === selectedImage.id
+								(img) => img.id === selectedImage.id,
 						  ) > 0
 						: false
 				}
