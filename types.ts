@@ -31,3 +31,22 @@ export interface AppState {
 }
 
 export type ImageMimeType = 'image/png' | 'image/jpeg' | 'image/webp' | 'image/heic' | 'image/heif';
+
+export type GarmentMode = 'primary' | 'secondary';
+
+export interface GarmentAnalysis {
+  baseGarment: string;
+  garmentSubtype: string;
+  classification: GarmentMode;
+  colors: string[];
+  patterns: string[];
+  materials: string[];
+  fitDescriptors: string[];
+  silhouette: string[];
+  constructionDetails: string[];
+  distinctiveDetails: string[];
+  visibilityNotes: string[];
+  confidence: number;
+}
+
+export type PromptLabShotKind = 'offBody' | 'onBody';
