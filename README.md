@@ -82,6 +82,18 @@ The cache can be cleared using the "Clear" button in the UI, which removes all c
 - **Export**: Download individual images or export all as ZIP with metadata
 
 
+## Headless Prompt Lab service
+
+`server/` exposes the prompt-craft functions over HTTP so ai-arena's garment optimizer can request
+the next prompt candidate without the guidelines being duplicated there.
+
+```bash
+npm run serve   # http://127.0.0.1:8787
+```
+
+It is additive — nothing in `server/` is imported by the app. See
+[server/README.md](server/README.md) for endpoints, and [AGENTS.md](AGENTS.md) for conventions.
+
 ## Building for Production
 
 ```bash
