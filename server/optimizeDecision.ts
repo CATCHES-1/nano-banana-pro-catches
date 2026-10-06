@@ -19,6 +19,7 @@ import {
 } from "../services/geminiService.ts";
 import type { GarmentAnalysis } from "../types.ts";
 import { fetchImageInput } from "./imageInput.ts";
+import { GEMINI_TIMEOUT_MS, MAX_ANALYSIS_CACHE } from "./limits.ts";
 
 /** The same model geminiService uses for its structured-JSON garment analysis. */
 const MODEL = "gemini-3.5-flash";
@@ -119,8 +120,19 @@ const DECISION_SCHEMA = {
 	required: ["stop", "rationale", "slots"],
 };
 
-/** In-process analysis cache: the reference images are fixed for a whole search. */
+/**
+ * In-process analysis cache: the reference images are fixed for a whole search. Bounded, oldest
+ * entry out, so a long-lived process serving many searches cannot grow without limit.
+ */
 const analysisCache = new Map<string, GarmentAnalysis>();
+
+const remember = (url: string, analysis: GarmentAnalysis) => {
+	if (analysisCache.size >= MAX_ANALYSIS_CACHE) {
+		const oldest = analysisCache.keys().next().value;
+		if (oldest !== undefined) analysisCache.delete(oldest);
+	}
+	analysisCache.set(url, analysis);
+};
 
 export const analyseSlotImages = async (
 	images: Record<string, string | null> = {},
@@ -134,7 +146,7 @@ export const analyseSlotImages = async (
 			image,
 			slot === "top" ? "primary" : "secondary",
 		);
-		analysisCache.set(url, analysis);
+		remember(url, analysis);
 		return [slot, analysis] as const;
 	});
 	const settled = await Promise.allSettled(entries);
@@ -178,7 +190,10 @@ export const decide = async (request: DecisionRequest): Promise<DecisionResponse
 		};
 	}
 
-	const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+	const ai = new GoogleGenAI({
+		apiKey: process.env.API_KEY,
+		httpOptions: { timeout: GEMINI_TIMEOUT_MS },
+	});
 	const brief = {
 		iteration: request.iteration ?? 0,
 		target_body_area: request.target_body_area ?? null,

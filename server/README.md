@@ -17,8 +17,36 @@ Reads `GEMINI_API_KEY` from `.env.local` (the same key the Vite build injects as
 stripping runs the `.ts` files directly.
 
 ```bash
-npm test        # prompt builder, gemini service, and server checks
+npm test        # prompt builder, gemini service, and server checks (auth, body cap, timeouts, shapes)
 ```
+
+### Auth and limits
+
+| Variable | Default | Effect |
+|---|---|---|
+| `PROMPTLAB_AUTH_TOKEN` | unset | When set, every route but `/health` needs `Authorization: Bearer <token>` (401 otherwise). ai-arena sends `OPTIMIZER_PROMPTLAB_TOKEN`. Unset is for loopback-only local runs; the service warns if it listens beyond loopback without one. |
+| `HOST` / `PORT` | `127.0.0.1` / `8787` | Bind address. The container sets `HOST=0.0.0.0`. |
+| `PROMPTLAB_REQUEST_TIMEOUT_MS` | `120000` | Whole-request budget for `/analyze` and `/optimize-decision`; `504` past it. |
+| `PROMPTLAB_IMAGE_FETCH_TIMEOUT_MS` | `15000` | One reference-image download; `504` when it stalls. |
+| `PROMPTLAB_GEMINI_TIMEOUT_MS` | `90000` | The decision call's own Gemini timeout. |
+| `PROMPTLAB_MAX_BODY_BYTES` | `2000000` | Request body cap; `413` over it. |
+| `PROMPTLAB_MAX_ANALYSIS_CACHE` | `256` | Garment analyses kept in memory, oldest out. |
+
+Never print the key or the token; `/health` reports only whether a key is loaded.
+
+### Container
+
+```bash
+docker build -t promptlab-service .
+docker run --rm -p 8787:8787 \
+  -e GEMINI_API_KEY -e PROMPTLAB_AUTH_TOKEN \
+  promptlab-service
+curl -s localhost:8787/health
+```
+
+The image runs only `server/` (non-root `node` user, Node 24 type stripping, no build step). Pass
+the two secrets from the environment or a secret manager; they are never baked into the image.
+See [DEPLOY.md](DEPLOY.md) for the hosting plan.
 
 ## Endpoints
 
