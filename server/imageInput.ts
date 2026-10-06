@@ -7,6 +7,7 @@
  */
 
 import type { ImageInput } from "../services/geminiService.ts";
+import { IMAGE_FETCH_TIMEOUT_MS } from "./limits.ts";
 
 const GCS_HOST = "https://storage.googleapis.com";
 
@@ -27,7 +28,7 @@ export const mimeTypeFor = (url: string): string => {
 };
 
 export const fetchImageInput = async (url: string): Promise<ImageInput> => {
-	const response = await fetch(toHttpUrl(url));
+	const response = await fetch(toHttpUrl(url), { signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS) });
 	if (!response.ok) {
 		throw new Error(`Could not fetch ${url}: ${response.status}`);
 	}

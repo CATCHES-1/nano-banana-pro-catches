@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "node --experimental-strip-types --env-file-if-exists=.env.local server/index.ts",
-    "test": "node --experimental-strip-types features/garmentPromptLab/promptBuilder.test.ts && node --experimental-strip-types services/geminiService.test.ts && node --experimental-strip-types server/optimizeDecision.test.ts"
+    "test": "node --experimental-strip-types features/garmentPromptLab/promptBuilder.test.ts && node --experimental-strip-types services/geminiService.test.ts && node --experimental-strip-types server/optimizeDecision.test.ts && node --experimental-strip-types server/auth.test.ts && node --experimental-strip-types server/service.test.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
